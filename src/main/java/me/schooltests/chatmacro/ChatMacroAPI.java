@@ -3,11 +3,18 @@ package me.schooltests.chatmacro;
 import me.schooltests.chatmacro.data.Macro;
 import me.schooltests.chatmacro.data.MacroPlayer;
 import me.schooltests.chatmacro.exceptions.NoSuchMacroPlayerException;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -20,8 +27,11 @@ import java.util.UUID;
 public class ChatMacroAPI {
     private ChatMacro plugin;
     private HashMap<UUID, MacroPlayer> cache = new HashMap<UUID, MacroPlayer>();
-    private StorageType storageType;
+    private StorageType storageType = StorageType.JSON;
+    private boolean useMacroLimits = false;
     private YamlConfiguration config = new YamlConfiguration();
+
+    private Permission vaultPermissionHandler;
 
     public ChatMacroAPI(ChatMacro plugin) {
         this.plugin = plugin;
@@ -73,6 +83,63 @@ public class ChatMacroAPI {
     }
 
     /**
+     * Loads plugin dependencies
+     */
+    public void loadDependencies() {
+        // Load Vault Permissions
+        if (config.contains("macro-limits") && config.contains("macro-limits.enabled")) {
+            if (config.getBoolean("macro-limits.enabled")) {
+                RegisteredServiceProvider<Permission> registeredServiceProvider = plugin.getServer().getServicesManager().getRegistration(Permission.class);
+                if (registeredServiceProvider == null) {
+                    plugin.debug("Failed to load Vault, defaulting to NO MACRO LIMITS");
+                } else {
+                    vaultPermissionHandler = registeredServiceProvider.getProvider();
+                    useMacroLimits = true;
+                }
+            }
+        }
+    }
+
+    /**
+     * @return The vault permission handler if available
+     */
+    public Optional<Permission> getVaultPermissionHandler() {
+        if (vaultPermissionHandler != null) {
+            return Optional.of(vaultPermissionHandler);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Checks whether or not a player can create a new macro with group limits
+     * @param p Player to check
+     * @return If the player can create a new macro within their group limit
+     */
+    public boolean canCreateNewMacro(Player p) {
+        if (!getVaultPermissionHandler().isPresent() || p.hasPermission("chatmacro.macro.unlimited")) {
+            return true;
+        } else {
+            List<String> playerGroups = Arrays.asList(vaultPermissionHandler.getPlayerGroups(p));
+            List<Integer> groupLimits = new ArrayList<>();
+            playerGroups.stream()
+                    .filter(group -> config.contains("macro-limits.groups." + group))
+                    .forEach(i -> groupLimits.add(config.getInt("macro-limits.groups." + i)));
+
+            if (groupLimits.isEmpty()) return true;
+            try {
+                MacroPlayer macroPlayer = getMacroPlayer(p.getUniqueId());
+                int maxLimit = Collections.max(groupLimits);
+                return macroPlayer.getMacros().size() < maxLimit;
+            } catch (NoSuchMacroPlayerException e) {
+                e.printStackTrace();
+                return true;
+            }
+
+        }
+    }
+
+    /**
      * @return The currently loaded configuration from cache.
      */
     public YamlConfiguration getConfig() {
@@ -84,11 +151,11 @@ public class ChatMacroAPI {
      * @see MacroPlayer
      * @param uuid The player's UUID that needs to be cached
      */
-    public void cacheMacroPlayer(UUID uuid) {
+    public void cachePlayerData(UUID uuid) {
         try {
             cache.put(uuid, getMacroPlayer(uuid));
         } catch (NoSuchMacroPlayerException e) {
-            MacroPlayer macroPlayer = new MacroPlayer(uuid, new ArrayList<Macro>());
+            MacroPlayer macroPlayer = new MacroPlayer(uuid, new ArrayList<>());
             cache.put(uuid, macroPlayer);
         }
     }

@@ -1,5 +1,8 @@
 package me.schooltests.chatmacro;
 
+import me.schooltests.chatmacro.commands.MacroCommand;
+import me.schooltests.chatmacro.listeners.DataListener;
+import me.schooltests.chatmacro.listeners.MacroListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ChatMacro extends JavaPlugin {
@@ -10,6 +13,11 @@ public class ChatMacro extends JavaPlugin {
         instance = this;
         API = new ChatMacroAPI(this);
         API.loadConfig();
+        API.loadDependencies();
+
+        getCommand("macro").setExecutor(new MacroCommand(this));
+        getServer().getPluginManager().registerEvents(new MacroListener(this), this);
+        getServer().getPluginManager().registerEvents(new DataListener(this), this);
     }
 
     public static ChatMacro getInstance() {

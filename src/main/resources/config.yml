@@ -1,4 +1,8 @@
 debug-mode: false
-data-type: SQLite # You can choose JSON, SQLite, or MySQL for this
-connection-params:
-  file: "data.db" # If you choose MySQL for this option you will need to supply the username, password, database, and port
+data-type: JSON # You can choose JSON or SQLite
+macro-limits: # In order for this to work, you need Vault
+  enabled: true
+  groups: # Give the chatmacro.macro.unlimited permission for unlimited macros
+    default: 1
+    vip: 2
+    mvp: 3

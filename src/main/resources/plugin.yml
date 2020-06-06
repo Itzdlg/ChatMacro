@@ -1,0 +1,30 @@
+name: ChatMacros
+main: me.schooltests.chatmacro.ChatMacro
+version: "1.0"
+commands:
+  macro:
+    description: "The main command to modify player macros"
+    usage: "/macro <create/delete/edit/info/list>"
+
+permissions:
+  chatmacro.macro.unlimited:
+    default: op
+    description: Allows players to bypass their groups macro limit
+  chatmacro.macro.execute:
+    default: true
+    description: Allows players to execute their created macros
+  chatmacro.macro.list:
+    default: true
+    description: Allows players to list their macros
+  chatmacro.macro.info:
+    default: true
+    description: Allows players to see the steps of their macros
+  chatmacro.macro.create:
+    default: false
+    description: Allows players to create their macros
+  chatmacro.macro.delete:
+    default: false
+    description: Allows players to delete their macros
+  chatmacro.macro.edit:
+    default: false
+    description: Allows players to edit their macros

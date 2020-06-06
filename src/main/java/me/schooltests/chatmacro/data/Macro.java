@@ -1,5 +1,7 @@
 package me.schooltests.chatmacro.data;
 
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -8,22 +10,27 @@ import java.util.UUID;
 public class Macro {
     private UUID owner;
     private String id;
-    private List<String> macroArguments;
+    private List<String> macroSteps;
 
-    private Macro(UUID owner, String id, List<String> macroArguments) {
+    public Macro(UUID owner, String id, List<String> macroSteps) {
         this.owner = owner;
         this.id = id;
-        this.macroArguments = macroArguments;
+        this.macroSteps = macroSteps;
     }
 
-    private Macro(Player owner, String id, List<String> macroArguments) {
+    public Macro(Player owner, String id, List<String> macroSteps) {
         this.owner = owner.getUniqueId();
         this.id = id;
-        this.macroArguments = macroArguments;
+        this.macroSteps = macroSteps;
     }
 
     public void execute() {
-
+        Player p = Bukkit.getPlayer(owner);
+        if (p != null) {
+            for (String step : macroSteps) {
+                p.chat(step);
+            }
+        }
     }
 
     public UUID getOwner() {
@@ -42,11 +49,11 @@ public class Macro {
         this.id = id;
     }
 
-    public List<String> getMacroArguments() {
-        return macroArguments;
+    public List<String> getMacroSteps() {
+        return macroSteps;
     }
 
-    public void setMacroArguments(List<String> macroArguments) {
-        this.macroArguments = macroArguments;
+    public void setMacroSteps(List<String> macroSteps) {
+        this.macroSteps = macroSteps;
     }
 }
