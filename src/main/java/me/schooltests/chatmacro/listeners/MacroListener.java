@@ -1,8 +1,8 @@
 package me.schooltests.chatmacro.listeners;
 
 import me.schooltests.chatmacro.ChatMacro;
-import me.schooltests.chatmacro.data.Macro;
-import me.schooltests.chatmacro.data.MacroPlayer;
+import me.schooltests.chatmacro.cache.Macro;
+import me.schooltests.chatmacro.cache.MacroPlayer;
 import me.schooltests.chatmacro.exceptions.NoSuchMacroPlayerException;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

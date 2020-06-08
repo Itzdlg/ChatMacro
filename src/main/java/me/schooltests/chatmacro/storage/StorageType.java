@@ -1,4 +1,4 @@
-package me.schooltests.chatmacro;
+package me.schooltests.chatmacro.storage;
 
 public enum StorageType {
     JSON,

@@ -1,4 +1,4 @@
-package me.schooltests.chatmacro.data;
+package me.schooltests.chatmacro.cache;
 
 import java.util.Collections;
 import java.util.Map;

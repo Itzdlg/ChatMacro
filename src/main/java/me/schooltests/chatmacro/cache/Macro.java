@@ -1,7 +1,6 @@
-package me.schooltests.chatmacro.data;
+package me.schooltests.chatmacro.cache;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;

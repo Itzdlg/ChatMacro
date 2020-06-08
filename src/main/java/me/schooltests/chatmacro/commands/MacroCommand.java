@@ -1,8 +1,8 @@
 package me.schooltests.chatmacro.commands;
 
 import me.schooltests.chatmacro.ChatMacro;
-import me.schooltests.chatmacro.data.Macro;
-import me.schooltests.chatmacro.data.MacroPlayer;
+import me.schooltests.chatmacro.cache.Macro;
+import me.schooltests.chatmacro.cache.MacroPlayer;
 import me.schooltests.chatmacro.exceptions.NoSuchMacroPlayerException;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -13,7 +13,6 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.StringJoiner;
 
 public class MacroCommand implements CommandExecutor {
     private ChatMacro plugin;

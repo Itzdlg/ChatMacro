@@ -1,8 +1,9 @@
 package me.schooltests.chatmacro;
 
-import me.schooltests.chatmacro.data.Macro;
-import me.schooltests.chatmacro.data.MacroPlayer;
+import me.schooltests.chatmacro.cache.MacroPlayer;
 import me.schooltests.chatmacro.exceptions.NoSuchMacroPlayerException;
+import me.schooltests.chatmacro.storage.JSONHandler;
+import me.schooltests.chatmacro.storage.StorageType;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -26,7 +27,7 @@ import java.util.UUID;
  */
 public class ChatMacroAPI {
     private ChatMacro plugin;
-    private HashMap<UUID, MacroPlayer> cache = new HashMap<UUID, MacroPlayer>();
+    private HashMap<UUID, MacroPlayer> cache = new HashMap<>();
     private StorageType storageType = StorageType.JSON;
     private boolean useMacroLimits = false;
     private YamlConfiguration config = new YamlConfiguration();
@@ -52,7 +53,7 @@ public class ChatMacroAPI {
         try {
             File file = new File(plugin.getDataFolder(), "config.yml");
             if (!file.exists()) {
-                file.getParentFile().mkdirs();
+                boolean success = file.getParentFile().mkdirs();
                 plugin.saveResource("config.yml", false);
                 config.load(file);
 
@@ -117,7 +118,7 @@ public class ChatMacroAPI {
      * @return If the player can create a new macro within their group limit
      */
     public boolean canCreateNewMacro(Player p) {
-        if (!getVaultPermissionHandler().isPresent() || p.hasPermission("chatmacro.macro.unlimited")) {
+        if (!useMacroLimits || !getVaultPermissionHandler().isPresent() || p.hasPermission("chatmacro.macro.unlimited")) {
             return true;
         } else {
             List<String> playerGroups = Arrays.asList(vaultPermissionHandler.getPlayerGroups(p));
@@ -155,7 +156,7 @@ public class ChatMacroAPI {
         try {
             cache.put(uuid, getMacroPlayer(uuid));
         } catch (NoSuchMacroPlayerException e) {
-            MacroPlayer macroPlayer = new MacroPlayer(uuid, new ArrayList<>());
+            MacroPlayer macroPlayer = new MacroPlayer(uuid, new HashMap<>());
             cache.put(uuid, macroPlayer);
         }
     }
@@ -167,6 +168,13 @@ public class ChatMacroAPI {
      */
     public void saveMacroPlayer(MacroPlayer macroPlayer) {
         // TODO: Save the data to storage
+        if (storageType == StorageType.JSON) {
+            // JSONHandler
+        } else if (storageType == StorageType.SQLite) {
+            // SQLHandler
+        } else if (storageType == StorageType.MySQL) {
+            // SQLHandler(mysql)
+        }
     }
 
     /**
@@ -174,7 +182,7 @@ public class ChatMacroAPI {
      * @see MacroPlayer
      * @param uuid The player's UUID that the data is saved under
      * @return The retrieved data as a MacroPlayer
-     * @throws NoSuchMacroPlayerException
+     * @throws NoSuchMacroPlayerException The data is missing from storage
      */
     public MacroPlayer getMacroPlayer(UUID uuid) throws NoSuchMacroPlayerException {
         if (cache.containsKey(uuid)) {

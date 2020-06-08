@@ -1,5 +1,10 @@
 debug-mode: false
-data-type: JSON # You can choose JSON or SQLite
+data-type: JSON # You can choose JSON, SQLite, or MySQL
+connection-params:
+  username: "user"
+  password: "admin"
+  database: "macros"
+  port: 10101
 macro-limits: # In order for this to work, you need Vault
   enabled: true
   groups: # Give the chatmacro.macro.unlimited permission for unlimited macros
