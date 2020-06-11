@@ -43,9 +43,9 @@ public class MacroCommand implements CommandExecutor {
                                     } else {
                                         Macro macro = new Macro(player.getUniqueId(), macroID, new ArrayList<>());
                                         macroPlayer.addMacro(macro); // Creates macro and adds it to their player data
-                                        plugin.getAPI().saveMacroPlayer(macroPlayer); // Updates cache and pushes to storage
+                                        //plugin.getAPI().saveMacroPlayer(macroPlayer); // Updates cache and pushes to storage
 
-                                        player.sendMessage(prefix + "New macro named " + ChatColor.AQUA + macro.getId() + ChatColor.WHITE + " has been created!");
+                                        player.sendMessage(prefix + "New macro named " + ChatColor.AQUA + macro.getName() + ChatColor.WHITE + " has been created!");
                                     }
                                 } catch (NoSuchMacroPlayerException e) {  // The player's data not exist?
                                     e.printStackTrace();
@@ -69,8 +69,8 @@ public class MacroCommand implements CommandExecutor {
                                 MacroPlayer macroPlayer = plugin.getAPI().getMacroPlayer(player.getUniqueId());
                                 boolean successful = macroPlayer.removeMacro(macroID);
                                 if (successful) {
-                                    plugin.getAPI().saveMacroPlayer(macroPlayer);
-                                    player.sendMessage(prefix + "Macro named " + ChatColor.AQUA + macroPlayer.getMacro(macroID).get().getId() + ChatColor.WHITE + " has been deleted!");
+                                    //plugin.getAPI().saveMacroPlayer(macroPlayer);
+                                    player.sendMessage(prefix + "Macro named " + ChatColor.AQUA + macroPlayer.getMacro(macroID).get().getName() + ChatColor.WHITE + " has been deleted!");
                                 } else {
                                     sendNoSuchMacroFound(player);
                                 }
@@ -98,9 +98,9 @@ public class MacroCommand implements CommandExecutor {
                                         String[] stepArr = Arrays.copyOfRange(args, 3, args.length);
                                         String step = String.join(" ", stepArr);
                                         macro.getMacroSteps().add(step);
-                                        plugin.getAPI().saveMacroPlayer(macroPlayer);
+                                        //plugin.getAPI().saveMacroPlayer(macroPlayer);
 
-                                        player.sendMessage(prefix + "Added step with index " + ChatColor.AQUA + macro.getMacroSteps().size() + ChatColor.WHITE + " to macro named " + ChatColor.AQUA + macro.getId() + ChatColor.WHITE + "!");
+                                        player.sendMessage(prefix + "Added step with index " + ChatColor.AQUA + macro.getMacroSteps().size() + ChatColor.WHITE + " to macro named " + ChatColor.AQUA + macro.getName() + ChatColor.WHITE + "!");
                                     } else if (args[2].equalsIgnoreCase("addn")) {
                                         if (args.length < 5) {
                                             sendEditHelpMessage(player);
@@ -110,9 +110,9 @@ public class MacroCommand implements CommandExecutor {
                                                 String[] stepArr = Arrays.copyOfRange(args, 4, args.length);
                                                 String step = String.join(" ", stepArr);
                                                 macro.getMacroSteps().add(pos - 1, step);
-                                                plugin.getAPI().saveMacroPlayer(macroPlayer);
+                                                //plugin.getAPI().saveMacroPlayer(macroPlayer);
 
-                                                player.sendMessage(prefix + "Added step with index " + pos + ChatColor.WHITE + " to macro named " + ChatColor.AQUA + macro.getId() + ChatColor.WHITE + "!");
+                                                player.sendMessage(prefix + "Added step with index " + pos + ChatColor.WHITE + " to macro named " + ChatColor.AQUA + macro.getName() + ChatColor.WHITE + "!");
                                             } catch (NumberFormatException e) {
                                                 player.sendMessage(prefix + ChatColor.RED + "Please use an actual number for the position!");
                                             }
@@ -122,9 +122,9 @@ public class MacroCommand implements CommandExecutor {
                                             int pos = Integer.valueOf(args[3]);
                                             if (macro.getMacroSteps().size() >= pos) {
                                                 macro.getMacroSteps().remove(pos - 1);
-                                                plugin.getAPI().saveMacroPlayer(macroPlayer);
+                                                //plugin.getAPI().saveMacroPlayer(macroPlayer);
 
-                                                player.sendMessage(prefix + "Removed step from macro named " + ChatColor.AQUA + macro.getId() + ChatColor.WHITE + "!");
+                                                player.sendMessage(prefix + "Removed step from macro named " + ChatColor.AQUA + macro.getName() + ChatColor.WHITE + "!");
                                             } else {
                                                 player.sendMessage(prefix + ChatColor.RED + "That step position does not exist in this macro!");
                                             }
@@ -158,7 +158,7 @@ public class MacroCommand implements CommandExecutor {
                                 if (oMacro.isPresent()) {
                                     Macro macro = oMacro.get();
                                     player.sendMessage("");
-                                    player.sendMessage(prefix + "Viewing macro named " + ChatColor.AQUA + macro.getId() + ChatColor.WHITE + "!");
+                                    player.sendMessage(prefix + "Viewing macro named " + ChatColor.AQUA + macro.getName() + ChatColor.WHITE + "!");
                                     for (String step : macro.getMacroSteps()) {
                                         player.sendMessage(ChatColor.AQUA + "Step #" + (macro.getMacroSteps().indexOf(step) + 1)+ ": " + ChatColor.WHITE + step);
                                     }
@@ -175,6 +175,22 @@ public class MacroCommand implements CommandExecutor {
                         }
                     } else {
                         player.sendMessage(prefix + "You are lacking the permissions to do this!");
+                    }
+                } else if (args[0].equalsIgnoreCase("list")) {
+                    try {
+                        MacroPlayer macroPlayer = plugin.getAPI().getMacroPlayer(player.getUniqueId());
+                        if (macroPlayer.getMacros().size() > 0) {
+                            player.sendMessage(ChatColor.GRAY + "Your macros: ");
+                            for (Macro m : macroPlayer.getMacros().values()) {
+                                player.sendMessage(ChatColor.GOLD + "- " + ChatColor.GRAY + m.getName());
+                            }
+                        } else {
+                            player.sendMessage(ChatColor.GRAY + "You have no macros!");
+                        }
+                    } catch (NoSuchMacroPlayerException e) {
+                        e.printStackTrace();
+                        sendErrorMessage(player);
+                        plugin.debug("No macro data was found for the player named " + player.getName() + "!");
                     }
                 } else {
                     sendHelpMessage(player);

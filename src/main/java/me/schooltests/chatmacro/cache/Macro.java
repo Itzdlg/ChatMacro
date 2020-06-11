@@ -1,35 +1,42 @@
 package me.schooltests.chatmacro.cache;
 
+import me.schooltests.chatmacro.ChatMacroAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 import java.util.UUID;
 
 public class Macro {
+    public final UUID uniqueID = UUID.randomUUID();
     private UUID owner;
-    private String id;
+    private String name;
     private List<String> macroSteps;
 
-    public Macro(UUID owner, String id, List<String> macroSteps) {
+    public Macro(UUID owner, String name, List<String> macroSteps) {
         this.owner = owner;
-        this.id = id;
+        this.name = name;
         this.macroSteps = macroSteps;
     }
 
-    public Macro(Player owner, String id, List<String> macroSteps) {
+    public Macro(Player owner, String name, List<String> macroSteps) {
         this.owner = owner.getUniqueId();
-        this.id = id;
+        this.name = name;
         this.macroSteps = macroSteps;
     }
 
     public void execute() {
-        Player p = Bukkit.getPlayer(owner);
-        if (p != null) {
-            for (String step : macroSteps) {
-                p.chat(step);
+        new BukkitRunnable() {
+            public void run() {
+                Player p = Bukkit.getPlayer(owner);
+                if (p != null) {
+                    for (String step : macroSteps) {
+                        p.chat(step);
+                    }
+                }
             }
-        }
+        }.runTask(Bukkit.getServicesManager().getRegistration(ChatMacroAPI.class).getPlugin());
     }
 
     public UUID getOwner() {
@@ -40,12 +47,12 @@ public class Macro {
         this.owner = owner;
     }
 
-    public String getId() {
-        return id;
+    public String getName() {
+        return name;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public List<String> getMacroSteps() {

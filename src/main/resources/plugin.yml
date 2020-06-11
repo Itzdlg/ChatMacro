@@ -2,15 +2,13 @@ name: ChatMacros
 main: me.schooltests.chatmacro.ChatMacro
 version: "1.0"
 author: SchoolTests (Itzdlg)
-softdepend:
-  - Vault
 commands:
   macro:
     description: "The main command to modify player macros"
     usage: "/macro <create/delete/edit/info/list>"
 
 permissions:
-  chatmacro.macro.unlimited:
+  chatmacro.limit.none:
     default: op
     description: Allows players to bypass their groups macro limit
   chatmacro.macro.execute:

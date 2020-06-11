@@ -3,19 +3,13 @@ package me.schooltests.chatmacro;
 import me.schooltests.chatmacro.cache.MacroPlayer;
 import me.schooltests.chatmacro.exceptions.NoSuchMacroPlayerException;
 import me.schooltests.chatmacro.storage.JSONHandler;
-import me.schooltests.chatmacro.storage.StorageType;
-import net.milkbowl.vault.permission.Permission;
+import me.schooltests.chatmacro.storage.SQLHandler;
+import me.schooltests.chatmacro.storage.StorageHandler;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.RegisteredServiceProvider;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -26,13 +20,14 @@ import java.util.UUID;
  * @version 1.0
  */
 public class ChatMacroAPI {
+    enum StorageType { JSON, SQLite, MySQL }
     private ChatMacro plugin;
     private HashMap<UUID, MacroPlayer> cache = new HashMap<>();
-    private StorageType storageType = StorageType.JSON;
+    private StorageType storageType;
     private boolean useMacroLimits = false;
     private YamlConfiguration config = new YamlConfiguration();
 
-    private Permission vaultPermissionHandler;
+    private StorageHandler storageHandler;
 
     public ChatMacroAPI(ChatMacro plugin) {
         this.plugin = plugin;
@@ -63,53 +58,52 @@ public class ChatMacroAPI {
                 }
 
                 String rawDataType = config.getString("data-type");
+                plugin.debug("Raw data type: " + rawDataType);
                 if (rawDataType == null) {
                     config.set("data-type", "JSON");
                     storageType = StorageType.JSON;
                     plugin.debug("Error finding config value data-type, setting to JSON");
                 } else if (rawDataType.equalsIgnoreCase("json")) {
+                    plugin.debug("Setting to JSON");
                     storageType = StorageType.JSON;
                 } else if (rawDataType.equalsIgnoreCase("sqlite")) {
+                    plugin.debug("Setting to SQLite");
                     storageType = StorageType.SQLite;
                 } else if (rawDataType.equalsIgnoreCase("mysql")) {
+                    plugin.debug("Setting to MySQL");
                     storageType = StorageType.MySQL;
                 } else {
                     storageType = StorageType.JSON;
                     plugin.debug("Incorrect value for config value data-type, defaulting to JSON");
                 }
+
+                useMacroLimits = config.contains("macro-limits.enabled") && config.getBoolean("macro-limits.enabled");
+                setupStorageHandler();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * Loads plugin dependencies
-     */
-    public void loadDependencies() {
-        // Load Vault Permissions
-        if (config.contains("macro-limits") && config.contains("macro-limits.enabled")) {
-            if (config.getBoolean("macro-limits.enabled")) {
-                RegisteredServiceProvider<Permission> registeredServiceProvider = plugin.getServer().getServicesManager().getRegistration(Permission.class);
-                if (registeredServiceProvider == null) {
-                    plugin.debug("Failed to load Vault, defaulting to NO MACRO LIMITS");
-                } else {
-                    vaultPermissionHandler = registeredServiceProvider.getProvider();
-                    useMacroLimits = true;
-                }
-            }
+    private void setupStorageHandler() {
+        switch (storageType) {
+            case JSON:
+                storageHandler = new JSONHandler();
+                break;
+            case SQLite:
+                storageHandler = new SQLHandler();
+                break;
+            case MySQL:
+                storageHandler = new SQLHandler(
+                        config.getString("connection-params.address"),
+                        config.getString("connection-params.database"),
+                        config.getString("connection-params.username"),
+                        config.getString("connection-params.password")
+                );
+                break;
         }
-    }
 
-    /**
-     * @return The vault permission handler if available
-     */
-    public Optional<Permission> getVaultPermissionHandler() {
-        if (vaultPermissionHandler != null) {
-            return Optional.of(vaultPermissionHandler);
-        } else {
-            return Optional.empty();
-        }
+        storageHandler.setup();
     }
 
     /**
@@ -118,26 +112,25 @@ public class ChatMacroAPI {
      * @return If the player can create a new macro within their group limit
      */
     public boolean canCreateNewMacro(Player p) {
-        if (!useMacroLimits || !getVaultPermissionHandler().isPresent() || p.hasPermission("chatmacro.macro.unlimited")) {
-            return true;
-        } else {
-            List<String> playerGroups = Arrays.asList(vaultPermissionHandler.getPlayerGroups(p));
-            List<Integer> groupLimits = new ArrayList<>();
-            playerGroups.stream()
-                    .filter(group -> config.contains("macro-limits.groups." + group))
-                    .forEach(i -> groupLimits.add(config.getInt("macro-limits.groups." + i)));
-
-            if (groupLimits.isEmpty()) return true;
-            try {
-                MacroPlayer macroPlayer = getMacroPlayer(p.getUniqueId());
-                int maxLimit = Collections.max(groupLimits);
-                return macroPlayer.getMacros().size() < maxLimit;
-            } catch (NoSuchMacroPlayerException e) {
-                e.printStackTrace();
-                return true;
+        if (p.hasPermission("chatmacro.limit.none") || !useMacroLimits) return true;
+        try {
+            int currentMacroCount = getMacroPlayer(p.getUniqueId()).getMacros().size();
+            int defaultLimit = config.getInt("macro-limits.groups.default");
+            if (currentMacroCount < defaultLimit) return true;
+            for (String key : config.getConfigurationSection("macro-limits.groups").getKeys(false)) {
+                plugin.debug("Looping through macro limit groups on index: " + key);
+                if (key.equalsIgnoreCase("default")) continue;
+                int macroLimit = config.getInt("macro-limits.groups." + key);
+                plugin.debug("Current index's macro limit: " + macroLimit);
+                if (currentMacroCount < macroLimit && p.hasPermission("chatmacro.limit." + key)) return true;
             }
 
+            return false;
+        } catch (NoSuchMacroPlayerException e) {
+            e.printStackTrace();
         }
+
+        return true;
     }
 
     /**
@@ -167,13 +160,14 @@ public class ChatMacroAPI {
      * @param macroPlayer The MacroPlayer to be saved
      */
     public void saveMacroPlayer(MacroPlayer macroPlayer) {
-        // TODO: Save the data to storage
-        if (storageType == StorageType.JSON) {
-            // JSONHandler
-        } else if (storageType == StorageType.SQLite) {
-            // SQLHandler
-        } else if (storageType == StorageType.MySQL) {
-            // SQLHandler(mysql)
+        storageHandler.put(macroPlayer);
+    }
+
+    public void saveMacroPlayer(UUID u) {
+        try {
+            saveMacroPlayer(getMacroPlayer(u));
+        } catch (NoSuchMacroPlayerException e) {
+            e.printStackTrace();
         }
     }
 
@@ -188,9 +182,7 @@ public class ChatMacroAPI {
         if (cache.containsKey(uuid)) {
             return cache.get(uuid);
         } else {
-            // TODO: Read from storage and return data
+            return storageHandler.get(uuid);
         }
-
-        throw new NoSuchMacroPlayerException();
     }
 }

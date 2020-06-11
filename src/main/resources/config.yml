@@ -1,13 +1,13 @@
-debug-mode: false
-data-type: JSON # You can choose JSON, SQLite, or MySQL
+debug-mode: true
+data-type: SQLite # You can choose JSON, SQLite, or MySQL
 connection-params:
+  address: "localhost:3306"
   username: "user"
-  password: "admin"
-  database: "macros"
-  port: 10101
-macro-limits: # In order for this to work, you need Vault
+  password: "myPassword"
+  database: "ChatMacro"
+macro-limits:
   enabled: true
-  groups: # Give the chatmacro.macro.unlimited permission for unlimited macros
-    default: 1
-    vip: 2
-    mvp: 3
+  groups: # Give the chatmacro.limit.none permission for unlimited macros
+    default: 1 # Default limit if they don't have chatmacro.limit.<group>
+    vip: 2 # chatmacro.limit.vip
+    mvp: 3 # chatmacro.limit.mvp

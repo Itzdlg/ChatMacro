@@ -41,15 +41,15 @@ public class MacroPlayer {
     }
 
     public boolean addMacro(Macro macro) {
-        if (!macros.containsKey(macro.getId().toLowerCase())) {
-            macros.put(macro.getId().toLowerCase(), macro);
+        if (!macros.containsKey(macro.getName().toLowerCase())) {
+            macros.put(macro.getName().toLowerCase(), macro);
             return true;
         } else return false;
     }
 
     public boolean removeMacro(Macro macro) {
-        if (macros.containsKey(macro.getId().toLowerCase())) {
-            macros.remove(macro.getId().toLowerCase());
+        if (macros.containsKey(macro.getName().toLowerCase())) {
+            macros.remove(macro.getName().toLowerCase());
             return true;
         } else return false;
     }
