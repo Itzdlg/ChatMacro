@@ -70,7 +70,7 @@ public class MacroCommand implements CommandExecutor {
                                 boolean successful = macroPlayer.removeMacro(macroID);
                                 if (successful) {
                                     //plugin.getAPI().saveMacroPlayer(macroPlayer);
-                                    player.sendMessage(prefix + "Macro named " + ChatColor.AQUA + macroPlayer.getMacro(macroID).get().getName() + ChatColor.WHITE + " has been deleted!");
+                                    player.sendMessage(prefix + "Macro named " + ChatColor.AQUA + macroID.toLowerCase() + ChatColor.WHITE + " has been deleted!");
                                 } else {
                                     sendNoSuchMacroFound(player);
                                 }
@@ -215,6 +215,7 @@ public class MacroCommand implements CommandExecutor {
         p.sendMessage(ChatColor.WHITE + "To show the steps of your macro use" + ChatColor.AQUA + "/macro info [name]");
         p.sendMessage(ChatColor.AQUA + "[step]" + ChatColor.WHITE + " = The command or message to execute");
         p.sendMessage(ChatColor.AQUA + "[step number]" + ChatColor.WHITE + " = The position of the step found in /macro info");
+        p.sendMessage("\n" + ChatColor.WHITE + "* NOTE: You can use {arg-#} as a placeholder for when executing the macro in chat");
     }
 
     private void sendErrorMessage(Player p) {

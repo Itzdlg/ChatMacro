@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -29,13 +30,14 @@ public class ChatMacroAPI {
 
     private StorageHandler storageHandler;
 
-    public ChatMacroAPI(ChatMacro plugin) {
+    ChatMacroAPI(ChatMacro plugin) {
         this.plugin = plugin;
     }
 
     /**
      * @return The ChatMacro instance that instantiated this API
      */
+    @SuppressWarnings("unused")
     public ChatMacro getPlugin() {
         return plugin;
     }
@@ -44,48 +46,51 @@ public class ChatMacroAPI {
      * Loads the configuration file, and if it doesn't
      * exist it copies the default configuration.
      */
-    public void loadConfig() {
+    void loadConfig() {
         try {
             File file = new File(plugin.getDataFolder(), "config.yml");
             if (!file.exists()) {
-                boolean success = file.getParentFile().mkdirs();
-                plugin.saveResource("config.yml", false);
-                config.load(file);
-
-                if (!config.contains("debug-mode")) {
-                    config.set("debug-mode", false);
-                    plugin.debug("Error finding config value debug-mode, setting to FALSE");
-                }
-
-                String rawDataType = config.getString("data-type");
-                plugin.debug("Raw data type: " + rawDataType);
-                if (rawDataType == null) {
-                    config.set("data-type", "JSON");
-                    storageType = StorageType.JSON;
-                    plugin.debug("Error finding config value data-type, setting to JSON");
-                } else if (rawDataType.equalsIgnoreCase("json")) {
-                    plugin.debug("Setting to JSON");
-                    storageType = StorageType.JSON;
-                } else if (rawDataType.equalsIgnoreCase("sqlite")) {
-                    plugin.debug("Setting to SQLite");
-                    storageType = StorageType.SQLite;
-                } else if (rawDataType.equalsIgnoreCase("mysql")) {
-                    plugin.debug("Setting to MySQL");
-                    storageType = StorageType.MySQL;
-                } else {
-                    storageType = StorageType.JSON;
-                    plugin.debug("Incorrect value for config value data-type, defaulting to JSON");
-                }
-
-                useMacroLimits = config.contains("macro-limits.enabled") && config.getBoolean("macro-limits.enabled");
-                setupStorageHandler();
+                final boolean success = file.getParentFile().mkdirs();
+                if (success) plugin.saveResource("config.yml", false);
             }
+
+            config.load(file);
+
+            if (!config.contains("debug-mode")) {
+                config.set("debug-mode", false);
+                plugin.debug("Error finding config value debug-mode, setting to FALSE");
+            }
+
+            String rawDataType = config.getString("data-type");
+            plugin.debug("Raw data type: " + rawDataType);
+            if (rawDataType == null) {
+                config.set("data-type", "JSON");
+                storageType = StorageType.JSON;
+                plugin.debug("Error finding config value data-type, setting to JSON");
+            } else if (rawDataType.equalsIgnoreCase("json")) {
+                plugin.debug("Setting to JSON");
+                storageType = StorageType.JSON;
+            } else if (rawDataType.equalsIgnoreCase("sqlite")) {
+                plugin.debug("Setting to SQLite");
+                storageType = StorageType.SQLite;
+            } else if (rawDataType.equalsIgnoreCase("mysql")) {
+                plugin.debug("Setting to MySQL");
+                storageType = StorageType.MySQL;
+            } else {
+                storageType = StorageType.JSON;
+                plugin.debug("Incorrect value for config value data-type, defaulting to JSON");
+            }
+
+            useMacroLimits = config.contains("macro-limits.enabled") && config.getBoolean("macro-limits.enabled");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void setupStorageHandler() {
+    /**
+     * Create the storage system and prepare it for work
+     */
+    void setupStorageHandler() {
         switch (storageType) {
             case JSON:
                 storageHandler = new JSONHandler();
@@ -117,7 +122,7 @@ public class ChatMacroAPI {
             int currentMacroCount = getMacroPlayer(p.getUniqueId()).getMacros().size();
             int defaultLimit = config.getInt("macro-limits.groups.default");
             if (currentMacroCount < defaultLimit) return true;
-            for (String key : config.getConfigurationSection("macro-limits.groups").getKeys(false)) {
+            for (String key : Objects.requireNonNull(config.getConfigurationSection("macro-limits.groups")).getKeys(false)) {
                 plugin.debug("Looping through macro limit groups on index: " + key);
                 if (key.equalsIgnoreCase("default")) continue;
                 int macroLimit = config.getInt("macro-limits.groups." + key);
@@ -136,6 +141,7 @@ public class ChatMacroAPI {
     /**
      * @return The currently loaded configuration from cache.
      */
+    @SuppressWarnings("WeakerAccess")
     public YamlConfiguration getConfig() {
         return config;
     }
@@ -159,10 +165,14 @@ public class ChatMacroAPI {
      * @see MacroPlayer
      * @param macroPlayer The MacroPlayer to be saved
      */
-    public void saveMacroPlayer(MacroPlayer macroPlayer) {
+    private void saveMacroPlayer(MacroPlayer macroPlayer) {
         storageHandler.put(macroPlayer);
     }
 
+    /**
+     * Saves user data to storage
+     * @param u The user to be saved
+     */
     public void saveMacroPlayer(UUID u) {
         try {
             saveMacroPlayer(getMacroPlayer(u));

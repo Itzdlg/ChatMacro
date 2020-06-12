@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 public class SQLHandler implements StorageHandler {
@@ -43,11 +44,10 @@ public class SQLHandler implements StorageHandler {
 
     private Connection getNewConnection() {
         try {
-            if (type == SQLType.SQLite) {
+            if (type == SQLType.SQLite)
                 return DriverManager.getConnection("jdbc:sqlite:plugins/ChatMacros/database.db");
-            } else if (type == SQLType.MySQL) {
+            else if (type == SQLType.MySQL)
                 return DriverManager.getConnection("jdbc:mysql://" + address + "/" + database, username, password);
-            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -55,24 +55,11 @@ public class SQLHandler implements StorageHandler {
         return null;
     }
 
-    /*
-    ID: The unique ID of the macro serving as the primary key
-    OWNER: The UUID of the macro creator
-    MACRO_NAME: The player-unique reference id for the macro
-    MACRO: Serialized steps for the macro
-     */
     @Override
     public void setup() {
-        Connection c = getNewConnection();
-        String syntax = "";
-        if (type == SQLType.SQLite) {
-            syntax = "CREATE TABLE IF NOT EXISTS macros (ID TEXT NOT NULL PRIMARY KEY, OWNER TEXT NOT NULL, MACRO_NAME TEXT NOT NULL, MACRO TEXT NOT NULL);";
-        } else if (type == SQLType.MySQL) {
-            syntax = "CREATE TABLE IF NOT EXISTS `macros` (`ID` VARCHAR(36) NOT NULL, `OWNER` VARCHAR(36) NOT NULL, `MACRO_NAME` VARCHAR(256) NOT NULL, `MACRO` TEXT NOT NULL, PRIMARY KEY (`MACRO_ID`));";
-        }
-
         try {
-            PreparedStatement statement = c.prepareStatement(syntax);
+            Connection c = Objects.requireNonNull(getNewConnection());
+            PreparedStatement statement = c.prepareStatement("CREATE TABLE IF NOT EXISTS macros (ID VARCHAR(36) NOT NULL, OWNER VARCHAR(36) NOT NULL, MACRO_NAME VARCHAR(256) NOT NULL, MACRO TEXT NOT NULL, PRIMARY KEY (ID));");
             statement.executeUpdate();
             c.close();
         } catch (SQLException e) {
@@ -82,12 +69,11 @@ public class SQLHandler implements StorageHandler {
 
     @Override
     public void put(MacroPlayer macroPlayer) {
-        Connection c = getNewConnection();
-        String syntax = "REPLACE INTO macros (ID, OWNER, MACRO_NAME, MACRO) VALUES (?, ?, ?, ?);";
         try {
-            PreparedStatement statement = c.prepareStatement(syntax);
+            Connection c = Objects.requireNonNull(getNewConnection());
+            PreparedStatement statement = c.prepareStatement("REPLACE INTO macros (ID, OWNER, MACRO_NAME, MACRO) VALUES (?, ?, ?, ?);");
             for (Macro macro : macroPlayer.getMacros().values()) {
-                statement.setString(1, macro.uniqueID.toString());
+                statement.setString(1, macro.getUniqueID().toString());
                 statement.setString(2, macro.getOwner().toString());
                 statement.setString(3, macro.getName());
                 statement.setString(4, gson.toJson(macro.getMacroSteps()));
@@ -100,16 +86,15 @@ public class SQLHandler implements StorageHandler {
 
     @Override
     public MacroPlayer get(UUID user) throws NoSuchMacroPlayerException {
-        Connection c = getNewConnection();
-        String syntax = "SELECT * FROM macros WHERE owner='?'";
         try {
-            PreparedStatement statement = c.prepareStatement(syntax);
+            Connection c = Objects.requireNonNull(getNewConnection());
+            PreparedStatement statement = c.prepareStatement("SELECT * FROM macros WHERE owner=?");
             statement.setString(1, user.toString());
             ResultSet statementResult = statement.executeQuery();
             MacroPlayer data = new MacroPlayer(user, new HashMap<>());
             while (statementResult.next()) {
                 Type type = TypeToken.getParameterized(ArrayList.class, String.class).getType();
-                Macro macro = new Macro(user, statementResult.getString("MACRO_NAME"), gson.fromJson(statementResult.getString("MACRO"), type));
+                Macro macro = new Macro(user, statementResult.getString("MACRO_NAME"), gson.fromJson(statementResult.getString("MACRO"), type), UUID.fromString(statementResult.getString("ID")));
                 data.addMacro(macro);
             }
 

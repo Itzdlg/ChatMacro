@@ -6,10 +6,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class Macro {
-    public final UUID uniqueID = UUID.randomUUID();
+    private UUID uniqueID = UUID.randomUUID();
     private UUID owner;
     private String name;
     private List<String> macroSteps;
@@ -20,23 +22,29 @@ public class Macro {
         this.macroSteps = macroSteps;
     }
 
-    public Macro(Player owner, String name, List<String> macroSteps) {
-        this.owner = owner.getUniqueId();
+    public Macro(UUID owner, String name, List<String> macroSteps, UUID referenceID) {
+        this.owner = owner;
         this.name = name;
         this.macroSteps = macroSteps;
+        this.uniqueID = referenceID;
     }
 
-    public void execute() {
+    public void execute(String[] args) {
         new BukkitRunnable() {
             public void run() {
                 Player p = Bukkit.getPlayer(owner);
                 if (p != null) {
                     for (String step : macroSteps) {
+                        for (int i = 0; i < args.length; i++) step = step.replaceAll("\\{arg-" + i + "}", args[i]);
                         p.chat(step);
                     }
                 }
             }
-        }.runTask(Bukkit.getServicesManager().getRegistration(ChatMacroAPI.class).getPlugin());
+        }.runTask(Objects.requireNonNull(Bukkit.getServicesManager().getRegistration(ChatMacroAPI.class)).getPlugin());
+    }
+
+    public UUID getUniqueID() {
+        return uniqueID;
     }
 
     public UUID getOwner() {

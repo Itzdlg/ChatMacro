@@ -19,14 +19,15 @@ public class MacroListener implements Listener {
 
     @EventHandler
     public void onMacroUse(AsyncPlayerChatEvent event) {
-        if (event.getMessage().startsWith("$") && event.getMessage().split(" ").length == 1) {
+        if (event.getMessage().startsWith("$")) {
             try {
-                String macroID = event.getMessage().replaceFirst("\\$", "");
+                String macroID = event.getMessage().split(" ")[0].replaceFirst("\\$", "");
                 MacroPlayer macroPlayer = plugin.getAPI().getMacroPlayer(event.getPlayer().getUniqueId());
                 Optional<Macro> oMacro = macroPlayer.getMacro(macroID);
                 if (oMacro.isPresent()) {
+                    event.setCancelled(true);
                     Macro macro = oMacro.get();
-                    macro.execute();
+                    macro.execute(event.getMessage().replaceFirst("\\$" + macroID, "").split(" "));
                 }
             } catch (NoSuchMacroPlayerException e) {
                 e.printStackTrace();

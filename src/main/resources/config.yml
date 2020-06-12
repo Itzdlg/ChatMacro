@@ -1,4 +1,4 @@
-debug-mode: true
+debug-mode: false
 data-type: SQLite # You can choose JSON, SQLite, or MySQL
 connection-params:
   address: "localhost:3306"

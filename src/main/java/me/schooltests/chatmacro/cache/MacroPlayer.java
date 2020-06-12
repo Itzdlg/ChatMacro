@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class MacroPlayer {
     private UUID uuid;
     private Map<String, Macro> macros;
@@ -47,7 +48,7 @@ public class MacroPlayer {
         } else return false;
     }
 
-    public boolean removeMacro(Macro macro) {
+    private boolean removeMacro(Macro macro) {
         if (macros.containsKey(macro.getName().toLowerCase())) {
             macros.remove(macro.getName().toLowerCase());
             return true;
