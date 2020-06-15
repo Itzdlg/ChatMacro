@@ -56,10 +56,8 @@ public class ChatMacroAPI {
 
             config.load(file);
 
-            if (!config.contains("debug-mode")) {
+            if (!config.contains("debug-mode"))
                 config.set("debug-mode", false);
-                plugin.debug("Error finding config value debug-mode, setting to FALSE");
-            }
 
             String rawDataType = config.getString("data-type");
             plugin.debug("Raw data type: " + rawDataType);
@@ -93,7 +91,7 @@ public class ChatMacroAPI {
     void setupStorageHandler() {
         switch (storageType) {
             case JSON:
-                storageHandler = new JSONHandler();
+                storageHandler = new JSONHandler(plugin);
                 break;
             case SQLite:
                 storageHandler = new SQLHandler();

@@ -22,8 +22,6 @@ public class ChatMacro extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MacroListener(this), this);
         getServer().getPluginManager().registerEvents(new DataListener(this), this);
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> Bukkit.getOnlinePlayers().forEach(p -> API.saveMacroPlayer(p.getUniqueId()))));
-
         Bukkit.getServicesManager().register(ChatMacroAPI.class, API, this, ServicePriority.Normal);
     }
 
