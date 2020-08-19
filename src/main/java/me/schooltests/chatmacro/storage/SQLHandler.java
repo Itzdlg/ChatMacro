@@ -88,7 +88,7 @@ public class SQLHandler implements StorageHandler {
     public MacroPlayer get(UUID user) throws NoSuchMacroPlayerException {
         try {
             Connection c = Objects.requireNonNull(getNewConnection());
-            PreparedStatement statement = c.prepareStatement("SELECT * FROM macros WHERE owner=?");
+            PreparedStatement statement = c.prepareStatement("SELECT * FROM macros WHERE owner=?;");
             statement.setString(1, user.toString());
             ResultSet statementResult = statement.executeQuery();
             MacroPlayer data = new MacroPlayer(user, new HashMap<>());

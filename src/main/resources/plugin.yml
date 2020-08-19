@@ -2,10 +2,10 @@ name: ChatMacros
 main: me.schooltests.chatmacro.ChatMacro
 version: "1.0"
 author: SchoolTests (Itzdlg)
-commands:
-  macro:
-    description: "The main command to modify player macros"
-    usage: "/macro <create/delete/edit/info/list>"
+#commands:
+#  macro:
+#    description: "The main command to modify player macros"
+#   usage: "/macro <create/delete/edit/info/list>"
 
 permissions:
   chatmacro.limit.none:

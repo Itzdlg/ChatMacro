@@ -93,7 +93,7 @@ public class ChatMacroAPI {
     void setupStorageHandler() {
         switch (storageType) {
             case JSON:
-                storageHandler = new JSONHandler();
+                storageHandler = new JSONHandler(plugin);
                 break;
             case SQLite:
                 storageHandler = new SQLHandler();

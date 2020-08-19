@@ -1,13 +1,12 @@
 package me.schooltests.chatmacro;
 
-import me.schooltests.chatmacro.commands.MacroCommand;
+import me.schooltests.chatmacro.commands.MainCommand;
 import me.schooltests.chatmacro.listeners.DataListener;
 import me.schooltests.chatmacro.listeners.MacroListener;
+import me.schooltests.stcf.spigot.SpigotSTCommandManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.Objects;
 
 public class ChatMacro extends JavaPlugin {
     private ChatMacroAPI API;
@@ -18,11 +17,11 @@ public class ChatMacro extends JavaPlugin {
         API.loadConfig();
         API.setupStorageHandler();
 
-        Objects.requireNonNull(getCommand("macro")).setExecutor(new MacroCommand(this));
+        SpigotSTCommandManager manager = new SpigotSTCommandManager(this);
+        manager.registerCommand(new MainCommand(manager));
+
         getServer().getPluginManager().registerEvents(new MacroListener(this), this);
         getServer().getPluginManager().registerEvents(new DataListener(this), this);
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> Bukkit.getOnlinePlayers().forEach(p -> API.saveMacroPlayer(p.getUniqueId()))));
 
         Bukkit.getServicesManager().register(ChatMacroAPI.class, API, this, ServicePriority.Normal);
     }
