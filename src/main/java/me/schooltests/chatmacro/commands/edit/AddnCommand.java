@@ -22,7 +22,9 @@ public class AddnCommand extends CommandExecutor<MainCommand> {
 
     @Override
     public List<CommandParameter> getParameters() {
-        return Arrays.asList(new CommandParameter("macro", Macro.class, true), new CommandParameter("position", Integer.class, true), new CommandParameter("step", String.class, true));
+        return Arrays.asList(new CommandParameter("macro", Macro.class, true),
+                new CommandParameter("position", Integer.class, true),
+                new CommandParameter("step", String.class, true));
     }
 
     @Override

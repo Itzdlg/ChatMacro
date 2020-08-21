@@ -5,6 +5,7 @@ import me.schooltests.chatmacro.listeners.DataListener;
 import me.schooltests.chatmacro.listeners.MacroListener;
 import me.schooltests.stcf.spigot.SpigotSTCommandManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
